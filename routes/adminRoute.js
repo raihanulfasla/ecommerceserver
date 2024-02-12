@@ -1,6 +1,6 @@
-import express, { Router } from "express";
+import { Router } from "express";
 import { register, login,getAdmin,getAllAdmin } from "../controller/adminController.js";
-import { verifyAdminToken } from "../middleware/tokenVerifying.js";
+import { verifyAdminToken } from "../middleware/AdminTokenVerify.js";
 
 
 const router = Router()

@@ -3,7 +3,7 @@ import multer from "multer";
 import {
     createProduct,
     deleteProductById,
-    getProduct,
+    getProducts,
     getProductById,
     updateProductById
 } from "../controller/productController.js";
@@ -23,9 +23,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage })
 
-
-router.post('/', upload.single('image'),createProduct)
-router.get('/',getProduct)
+router.post('/',createProduct)
+router.get('/',getProducts)
 router.get('/:id', getProductById)
 router.put("/:id",updateProductById)
 router.delete("/:id",deleteProductById)

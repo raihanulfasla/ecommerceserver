@@ -1,4 +1,9 @@
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+
 
 export const verifyAdminToken = (req,res,next) =>{
  
@@ -15,7 +20,7 @@ export const verifyAdminToken = (req,res,next) =>{
     }
 
  
-    var decoded = jwt.verify(token, 'shhhhh');
+    var decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
    
     
     if(decoded.isAdmin){

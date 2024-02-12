@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import { User } from "../model/userModel.js";
+import Jwt  from "jsonwebtoken";
+import dotenv from "dotenv";
 
 
 export const register = (req, res) => {
@@ -57,7 +59,11 @@ export const login = async (req, res) => {
     bcrypt.compare(req.body.password, getUser.password).then(function (result) {
 
         if (result) {
-            return res.status(200).json({ users: getUser, message: 'Successfull' })
+
+            const token = jwt.sign({userId: getUser._id,isUser:getUser.isUser},process.env.JWT_SECRET_KEY, {expiresIn:"10h"})
+
+
+            return res.status(200).json({ users: getUser, message: 'Successfull' ,token})
         } else {
             return res.status(400).json({ message: "Invalid Email or Password" })
 

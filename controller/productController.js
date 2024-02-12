@@ -1,23 +1,50 @@
 import mongoose from "mongoose";
+import { Product } from "../model/Product.js";
 
 
-export const createProduct = (req, res) => {
-    console.log(req.file, 'file');
-    mongoose.connection.collection("product").insertOne({ ...req.body, profile: req.file?.filename }).then((response) => {
-        res.status(200).json({ product: response, message: "Succesfully" });
+export const createProduct = async(req, res) => {
+    try {
+        const { name, price, description, qunatity } = req.body
 
-    }).catch((err) => {
-        res.status(400).json({ message: err.message || "error" })
-    })
+        
+        if (!name) {
+            return res.status(400).json({ message: "name is missing" })
+        }
+        if (!price) {
+            return res.status(400).json({ message: "price is missing" })
+        }
+        if (!description) {
+            return res.status(400).json({ message: "description is missing" })
+        }
+        if (!qunatity) {
+            return res.status(400).json({ message: "quantity is missing" })
+        }
+
+        const isProducNameExist = await Product.findOne({name:name})
+
+        if(!!isProducNameExist){
+            return res.status(400).json({ message: "product name is exising , please enter another one" })
+        }
+        
+        const newProduct = new Product({ name,description,price,qunatity })
+
+        const savedProduct = await newProduct.save();
+       
+        return res.status(201).json({product:savedProduct,message: 'successfully inserted product into db' });
+
+    } catch (error) {
+        return res.status(404).json({message: error.message || 'error' });      
+    }
 }
 
-export const getProduct = async (req, res) => {
-    const response = await mongoose.connection.collection("product").find().toArray();
+export const getProducts = async (req, res) => {
 
-    if (response.length === 0) {
+    const products = await Product.find();
+
+    if (products.length === 0) {
         return res.status(404).json("no entries yet");
     } else {
-        return res.status(200).json({ product: response });
+        return res.status(200).json({ products: products });
     }
 }
 

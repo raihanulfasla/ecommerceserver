@@ -2,20 +2,39 @@ import bcrypt from "bcrypt";
 import mongoose, { get } from "mongoose";
 import { Admin } from "../model/adminModel.js";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 
-export const register = (req, res) => {
+export const register =async (req, res) => {
 
 
     try {
         const { fname, lname, email, password } = req.body
+
         
-        if (!fname || !lname || !email || !password) {
-            return res.status(400).json({ message: "All fields are mandatory" })
+     
+        if (!lname) {
+            return res.status(400).json({ message: "lname is missing" })
+        }
+        if (!fname) {
+            return res.status(400).json({ message: "fname is missing" })
+        }
+        if (!email) {
+            return res.status(400).json({ message: "email is missing" })
+        }
+        if (!password) {
+            return res.status(400).json({ message: "password is missing" })
         }
 
-            // .............encryption........ //
+        const isMailExist = await Admin.findOne({email:email})
 
+        if(!!isMailExist){
+            return res.status(400).json({ message: "mail is exising , please enter another one" })
+        }
+        
+            // .............encryption........ //
         //(saltRounds=10)
         //  req.body.password = myPlaintextPassword  //
 
@@ -26,8 +45,23 @@ export const register = (req, res) => {
 
             const saveAdmin = await newAdmin.save();
 
+            console.log(saveAdmin);
+
+            
+
+            
+            
+            
+            
             if(saveAdmin){
-               return res.status(201).json({user:saveAdmin,message: 'successfully inserted admin into db' });
+                
+                const { fname,lname,email,...others } = saveAdmin._doc;
+
+                let userData = { fname, lname, email }
+
+               return res.status(201).json({user:userData,message: 'successfully inserted admin into db' });
+            }else{
+               return res.status(400).json({user:saveAdmin,message: 'not inserted data into databse' });
             }
     })
 
@@ -41,15 +75,22 @@ export const register = (req, res) => {
 export const login = async (req, res) => {
 
     const { email, password } = req.body;
-    if (!email || !password) {
-        return res.status(400).json({ message: "All fields are mandatory" })
+    if (!email) {
+        return res.status(400).json({ message: "email is missing" })
     }
+    if (!password) {
+        return res.status(400).json({ message: "password is missing" })
+    }
+
+
 
     const getAdmin = await Admin.findOne({email})
 
     if(!getAdmin){
        return res.status(400).json({ message: 'invalid email' })
     }
+
+
 // ------
     
     bcrypt.compare(req.body.password, getAdmin.password).then(function (result) {
@@ -57,14 +98,19 @@ export const login = async (req, res) => {
         if (result) {
 
 
-            const token = jwt.sign({ userId: getAdmin._id,isAdmin:getAdmin.isAdmin  }, 'shhhhh');
+            const token = jwt.sign({ userId: getAdmin._id,isAdmin:getAdmin.isAdmin  }, process.env.JWT_SECRET_KEY, {expiresIn:"10h"});
 
             // userid = userid,
             // isAdmin = true
 
             // GENERATE JWT TOKEN
 
-            return res.status(200).json({ users: getAdmin, message: 'Successfull',token })
+            const { fname,lname,email,...others } = getAdmin._doc;
+
+            let userData = { fname, lname, email }
+
+
+            return res.status(200).json({ users: userData, message: 'Successfull',token })
         } else {
             return res.status(400).json({ message: "Invalid Email or Password" })
 
@@ -94,9 +140,7 @@ export const getAdmin = async (req, res) => {
 }
 
 export const getAllAdmin = async (req, res) => {
-    console.log('====================================');
-    // console.log();
-    console.log('====================================');
+    
     try {
 
     const getAllAdmin = await Admin.find()
