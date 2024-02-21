@@ -253,6 +253,21 @@ app.get("/api/products/",async(req,res)=>{
     }
 })
 
+// fetch product by id , from database
+app.get("/api/products/:id",async(req,res)=>{
+
+    if(!req.params.id){
+        return res.status(400).json({message:'id not provided'})
+    }
+    const products = await Product.findById(req.params.id);
+
+    if (products) {
+        return res.status(200).json({ products: products });
+    } else {
+        return res.status(404).json("no entries yet");
+    }
+})
+
 app.delete('/api/products/:id',async(req,res)=>{
 
     if(!Boolean(req.params.id)){
